@@ -1,15 +1,18 @@
 -- CardData.luau
 -- The single source of truth for every card in Brainrot Card Heist.
--- ImageId values are the uploaded Decal asset ids for the card faces; the
--- illustrated SurfaceGui face still renders underneath as a fallback.
+-- ImageId values are the IMAGE asset ids behind the uploaded card-face
+-- decals (a Decal's Texture and an ImageLabel both take the image id
+-- directly). The first decal batch stored blank images, so every face was
+-- re-uploaded on 2026-11-19 and these ids point at the verified pictures.
+-- The illustrated SurfaceGui face still renders underneath as a fallback.
 
 local CardData = {}
 
-CardData.StartingCash = 250
-CardData.PullCost = 100
+CardData.StartingCash = 250000
+CardData.PullCost = 20000
 CardData.MaxStandsPerBase = 8 -- physical stand positions built at every base
 CardData.StartingStands = 6 -- stands usable before any rebirth (+1 per rebirth)
-CardData.RebirthBaseCost = 2500 -- doubles with every rebirth
+CardData.RebirthBaseCost = 500000 -- doubles with every rebirth
 CardData.RebirthIncomeBonus = 0.5 -- +50% income per rebirth, permanent
 CardData.CarryWalkSpeed = 11
 CardData.NormalWalkSpeed = 16
@@ -64,29 +67,29 @@ local function card(id, name, rarity, earnPerSecond, pullWeight, symbol, imageId
 end
 
 CardData.Cards = {
-	card("tung_tung_sahur", "Tung Tung Sahur", "Common", 1, 160, "🪵", 100075106752000),
-	card("pudding_pigeon", "Pudding Pigeon", "Common", 2, 130, "🕊️", 91074752847770),
-	card("boneca_ambalabu", "Boneca Ambalabu", "Common", 2, 140, "🐸", 70386959170704),
-	card("lirili_larila", "Lirili Larila", "Common", 3, 120, "🐘", 121766391083083),
-	card("noodle_narwhal", "Noodle Narwhal", "Common", 4, 100, "🍜", 106791232734309),
+	card("tung_tung_sahur", "Tung Tung Sahur", "Common", 5000, 160, "🪵", 132252717047468),
+	card("pudding_pigeon", "Pudding Pigeon", "Common", 10000, 130, "🕊️", 123815915093709),
+	card("boneca_ambalabu", "Boneca Ambalabu", "Common", 10000, 140, "🐸", 128064126574855),
+	card("lirili_larila", "Lirili Larila", "Common", 15000, 120, "🐘", 108483752320186),
+	card("noodle_narwhal", "Noodle Narwhal", "Common", 20000, 100, "🍜", 94930411195202),
 
-	card("disco_donut_deer", "Disco Donut Deer", "Rare", 7, 70, "🍩", 113439948148765),
-	card("chimpanzini_bananini", "Chimpanzini Bananini", "Rare", 6, 75, "🍌", 103092376576962),
-	card("bombardiro_crocodilo", "Bombardiro Crocodilo", "Rare", 8, 65, "🐊", 79867200908467),
-	card("bubble_butler", "Bubble Butler", "Rare", 9, 55, "🫧", 91933916664165),
+	card("disco_donut_deer", "Disco Donut Deer", "Rare", 35000, 70, "🍩", 79416168766739),
+	card("chimpanzini_bananini", "Chimpanzini Bananini", "Rare", 30000, 75, "🍌", 94383215664898),
+	card("bombardiro_crocodilo", "Bombardiro Crocodilo", "Rare", 40000, 65, "🐊", 87530254191723),
+	card("bubble_butler", "Bubble Butler", "Rare", 45000, 55, "🫧", 106160357859055),
 
-	card("cappuccino_assassino", "Cappuccino Assassino", "Epic", 18, 35, "☕", 126776689315043),
-	card("turbo_toaster_tiger", "Turbo Toaster Tiger", "Epic", 20, 32, "🐯", 71196465510372),
-	card("ballerina_cappuccina", "Ballerina Cappuccina", "Epic", 22, 30, "🩰", 85629952357027),
+	card("cappuccino_assassino", "Cappuccino Assassino", "Epic", 90000, 35, "☕", 115057826790577),
+	card("turbo_toaster_tiger", "Turbo Toaster Tiger", "Epic", 100000, 32, "🐯", 101825622281452),
+	card("ballerina_cappuccina", "Ballerina Cappuccina", "Epic", 110000, 30, "🩰", 130915619468520),
 
-	card("tralalero_tralala", "Tralalero Tralala", "Legendary", 50, 16, "🦈", 80468572654906),
-	card("moonlight_muffin_moose", "Moonlight Muffin Moose", "Legendary", 58, 13, "🫎", 135787293315198),
+	card("tralalero_tralala", "Tralalero Tralala", "Legendary", 250000, 16, "🦈", 138408680857327),
+	card("moonlight_muffin_moose", "Moonlight Muffin Moose", "Legendary", 290000, 13, "🫎", 91057651035183),
 
-	card("galaxy_gelato_giraffe", "Galaxy Gelato Giraffe", "Mythic", 140, 5, "🦒", 102090914648871),
-	card("crystal_croissant_crab", "Crystal Croissant Crab", "Mythic", 120, 4, "🦀", 70606780279871),
+	card("galaxy_gelato_giraffe", "Galaxy Gelato Giraffe", "Mythic", 700000, 5, "🦒", 84178604678239),
+	card("crystal_croissant_crab", "Crystal Croissant Crab", "Mythic", 600000, 4, "🦀", 94259503030223),
 
-	card("void_velvet_velociraptor", "Void Velvet Velociraptor", "Secret", 350, 1, "🦖", 137658996081590),
-	card("golden_gondola_goose", "Golden Gondola Goose", "Secret", 300, 1, "🪿", 76041997477067),
+	card("void_velvet_velociraptor", "Void Velvet Velociraptor", "Secret", 1750000, 1, "🦖", 79759084853193),
+	card("golden_gondola_goose", "Golden Gondola Goose", "Secret", 1500000, 1, "🪿", 140127134931142),
 }
 
 CardData.CardsById = {}
@@ -169,6 +172,35 @@ function CardData.GetEarnPerSecond(definition, mutationId)
 	return definition.EarnPerSecond * CardData.GetMutation(mutationId).Multiplier
 end
 
+-- Compact money text for every screen and label: $999, $12.5K, $2.5M,
+-- $1.25B. The game's economy runs in thousands and millions now, and a
+-- raw 7-digit number reads as noise in a screenshot.
+function CardData.FormatMoney(amount)
+	local value = math.floor(math.abs(amount))
+	if value < 1000 then
+		return "$" .. value
+	end
+	local function compact(divisor, suffix)
+		local text = string.format("%.2f", value / divisor)
+		text = string.gsub(text, "(%.%d-)0+$", "%1")
+		text = string.gsub(text, "%.$", "")
+		return "$" .. text .. suffix
+	end
+	if value < 1000000 then
+		return compact(1000, "K")
+	elseif value < 1000000000 then
+		return compact(1000000, "M")
+	end
+	return compact(1000000000, "B")
+end
+
+-- What a card costs on the conveyor belt: a flat 12 seconds of its own
+-- earning power (mutation included), so even the first belt card of the
+-- day sits inside a new player's reach.
+function CardData.GetBeltPrice(definition, mutationId)
+	return CardData.GetEarnPerSecond(definition, mutationId) * 12
+end
+
 function CardData.DisplayName(definition, mutationId)
 	local mutation = CardData.GetMutation(mutationId)
 	if mutation.Prefix ~= "" then
@@ -238,6 +270,51 @@ function CardData.Roll(random)
 	local cumulative = 0
 	for _, definition in ipairs(CardData.Cards) do
 		cumulative += definition.PullWeight
+		if roll <= cumulative then
+			return definition
+		end
+	end
+	return CardData.Cards[#CardData.Cards]
+end
+
+-- The luck shop's catalog: cash buys a timed multiplier on the machine's
+-- pull odds. Luck fattens the weights of Epic-and-better cards only;
+-- Commons and Rares keep their base weights, so a lucky pull visibly
+-- shifts the mix instead of just renaming the same odds.
+CardData.LuckProducts = {
+	{ Id = "luck_1", Name = "Lucky Charm", Symbol = "\u{1F340}", Multiplier = 1.5, DurationSeconds = 300, Price = 2000000, Blurb = "x1.5 luck \u{2022} 5 min" },
+	{ Id = "luck_2", Name = "Fortune Potion", Symbol = "\u{1F9EA}", Multiplier = 2, DurationSeconds = 300, Price = 10000000, Blurb = "x2 luck \u{2022} 5 min" },
+	{ Id = "luck_3", Name = "Jackpot Juice", Symbol = "\u{1F3B0}", Multiplier = 3, DurationSeconds = 600, Price = 40000000, Blurb = "x3 luck \u{2022} 10 min" },
+	{ Id = "luck_4", Name = "MEGA LUCK", Symbol = "\u{1F48E}", Multiplier = 5, DurationSeconds = 180, Price = 100000000, Blurb = "x5 luck \u{2022} 3 min" },
+}
+
+CardData.LuckProductsById = {}
+for _, product in ipairs(CardData.LuckProducts) do
+	CardData.LuckProductsById[product.Id] = product
+end
+
+-- Weighted pull with a luck multiplier applied to Epic-and-better cards.
+function CardData.RollWithLuck(random, luckMultiplier)
+	if not luckMultiplier or luckMultiplier <= 1 then
+		return CardData.Roll(random)
+	end
+	local epicOrder = CardData.Rarities.Epic.Order
+	local total = 0
+	for _, definition in ipairs(CardData.Cards) do
+		local weight = definition.PullWeight
+		if CardData.Rarities[definition.Rarity].Order >= epicOrder then
+			weight *= luckMultiplier
+		end
+		total += weight
+	end
+	local roll = random:NextNumber() * total
+	local cumulative = 0
+	for _, definition in ipairs(CardData.Cards) do
+		local weight = definition.PullWeight
+		if CardData.Rarities[definition.Rarity].Order >= epicOrder then
+			weight *= luckMultiplier
+		end
+		cumulative += weight
 		if roll <= cumulative then
 			return definition
 		end
