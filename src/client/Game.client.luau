@@ -15,6 +15,8 @@ local revealEvent = remotes:WaitForChild("Reveal")
 local rebirthEvent = remotes:WaitForChild("Rebirth")
 local lockStateEvent = remotes:WaitForChild("LockState")
 local adminCashEvent = remotes:WaitForChild("AdminCash")
+local eventEvent = remotes:WaitForChild("Event")
+local incomeEvent = remotes:WaitForChild("Income")
 
 local gui = Instance.new("ScreenGui")
 gui.Name = "BrainrotHud"
@@ -40,8 +42,8 @@ end
 -- Cash panel.
 local cashPanel = Instance.new("Frame")
 cashPanel.Name = "CashPanel"
-cashPanel.Position = UDim2.new(0, 16, 0, 66)
-cashPanel.Size = UDim2.new(0, 190, 0, 78)
+cashPanel.Position = UDim2.new(0, 18, 0, 76)
+cashPanel.Size = UDim2.new(0, 308, 0, 122)
 cashPanel.BackgroundColor3 = Color3.fromRGB(24, 22, 44)
 cashPanel.BorderSizePixel = 0
 cashPanel.Parent = gui
@@ -50,37 +52,47 @@ local cashCorner = Instance.new("UICorner")
 cashCorner.CornerRadius = UDim.new(0, 14)
 cashCorner.Parent = cashPanel
 
+local cashStroke = Instance.new("UIStroke")
+cashStroke.Color = Color3.fromRGB(255, 196, 66)
+cashStroke.Thickness = 2
+cashStroke.Parent = cashPanel
+
 local cashLabel = makeLabel(cashPanel, "Cash", UDim2.fromScale(0.06, 0.05), UDim2.fromScale(0.88, 0.36), "💰 $0", Color3.fromRGB(255, 224, 102), Color3.fromRGB(24, 22, 44), 1)
 cashLabel.TextXAlignment = Enum.TextXAlignment.Left
 cashLabel.TextScaled = false
-cashLabel.TextSize = 20
+cashLabel.TextSize = 34
 local incomeLabel = makeLabel(cashPanel, "Income", UDim2.fromScale(0.06, 0.43), UDim2.fromScale(0.88, 0.26), "Placed cards earn every second", Color3.fromRGB(190, 200, 220), Color3.fromRGB(24, 22, 44), 1)
 incomeLabel.TextXAlignment = Enum.TextXAlignment.Left
 incomeLabel.TextScaled = false
-incomeLabel.TextSize = 11
+incomeLabel.TextSize = 18
 incomeLabel.TextWrapped = true
 local rebirthLabel = makeLabel(cashPanel, "Rebirths", UDim2.fromScale(0.06, 0.71), UDim2.fromScale(0.88, 0.26), "⭐ Rebirths: 0 • Income x1.0", Color3.fromRGB(255, 190, 90), Color3.fromRGB(24, 22, 44), 1)
 rebirthLabel.TextXAlignment = Enum.TextXAlignment.Left
 rebirthLabel.TextScaled = false
-rebirthLabel.TextSize = 11
+rebirthLabel.TextSize = 18
 
 -- Rebirth button: the server re-checks the cost, this only sends the ask.
 local rebirthButton = Instance.new("TextButton")
 rebirthButton.Name = "RebirthButton"
-rebirthButton.Position = UDim2.new(0, 16, 0, 182)
-rebirthButton.Size = UDim2.new(0, 190, 0, 38)
+rebirthButton.Position = UDim2.new(0, 18, 0, 210)
+rebirthButton.Size = UDim2.new(0, 308, 0, 56)
 rebirthButton.BackgroundColor3 = Color3.fromRGB(70, 66, 96)
 rebirthButton.BorderSizePixel = 0
 rebirthButton.Text = "♻ REBIRTH"
 rebirthButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 rebirthButton.Font = Enum.Font.FredokaOne
 rebirthButton.TextScaled = false
-rebirthButton.TextSize = 14
+rebirthButton.TextSize = 21
 rebirthButton.Parent = gui
 
 local rebirthButtonCorner = Instance.new("UICorner")
 rebirthButtonCorner.CornerRadius = UDim.new(0, 12)
 rebirthButtonCorner.Parent = rebirthButton
+
+local rebirthStroke = Instance.new("UIStroke")
+rebirthStroke.Color = Color3.fromRGB(255, 196, 66)
+rebirthStroke.Thickness = 2
+rebirthStroke.Parent = rebirthButton
 
 rebirthButton.Activated:Connect(function()
 	rebirthEvent:FireServer()
@@ -94,14 +106,14 @@ if game.CreatorType == Enum.CreatorType.User and player.UserId == game.CreatorId
 	adminCashButton.Name = "AdminCashButton"
 	adminCashButton.AnchorPoint = Vector2.new(1, 1)
 	adminCashButton.Position = UDim2.new(1, -12, 1, -70)
-	adminCashButton.Size = UDim2.new(0, 110, 0, 36)
+	adminCashButton.Size = UDim2.new(0, 150, 0, 48)
 	adminCashButton.BackgroundColor3 = Color3.fromRGB(24, 22, 44)
 	adminCashButton.BorderSizePixel = 0
-	adminCashButton.Text = "👑 +$10K"
+	adminCashButton.Text = "👑 +$25M"
 	adminCashButton.TextColor3 = Color3.fromRGB(255, 224, 102)
 	adminCashButton.Font = Enum.Font.FredokaOne
 	adminCashButton.TextScaled = false
-	adminCashButton.TextSize = 14
+	adminCashButton.TextSize = 18
 	adminCashButton.Parent = gui
 
 	local adminCashButtonCorner = Instance.new("UICorner")
@@ -114,7 +126,7 @@ if game.CreatorType == Enum.CreatorType.User and player.UserId == game.CreatorId
 end
 
 -- Base lock status chip (top-right): mirrors the server's lock state.
-local lockChip = makeLabel(gui, "LockStatus", UDim2.new(1, -166, 0, 66), UDim2.new(0, 150, 0, 30),
+local lockChip = makeLabel(gui, "LockStatus", UDim2.new(1, -244, 0, 76), UDim2.new(0, 228, 0, 44),
 	"🛡 Base lock ready", Color3.fromRGB(190, 225, 255), Color3.fromRGB(24, 22, 44), 0.15)
 lockChip.TextScaled = false
 lockChip.TextSize = 12
@@ -150,7 +162,7 @@ task.spawn(function()
 end)
 
 -- Objective strip.
-local objective = makeLabel(gui, "Objective", UDim2.new(0.5, -180, 0, 16), UDim2.new(0, 360, 0, 32),
+local objective = makeLabel(gui, "Objective", UDim2.new(0.5, -250, 0, 14), UDim2.new(0, 500, 0, 44),
 	"PULL  →  CARRY  →  PLACE  →  PROTECT", Color3.fromRGB(255, 255, 255), Color3.fromRGB(24, 22, 44), 0.25)
 objective.TextScaled = false
 objective.TextSize = 13
@@ -164,7 +176,7 @@ local banner = Instance.new("Frame")
 banner.Name = "RevealBanner"
 banner.AnchorPoint = Vector2.new(0.5, 0)
 banner.Position = UDim2.new(0.5, 0, 0, -170)
-banner.Size = UDim2.new(0, 340, 0, 96)
+banner.Size = UDim2.new(0, 460, 0, 128)
 banner.BackgroundColor3 = Color3.fromRGB(178, 190, 204)
 banner.BorderSizePixel = 0
 banner.Parent = gui
@@ -175,7 +187,7 @@ bannerCorner.Parent = banner
 
 local bannerTitle = makeLabel(banner, "Title", UDim2.fromScale(0.05, 0.06), UDim2.fromScale(0.9, 0.3), "", Color3.fromRGB(255, 255, 255), Color3.fromRGB(0, 0, 0), 1)
 bannerTitle.TextScaled = false
-bannerTitle.TextSize = 24
+bannerTitle.TextSize = 32
 local bannerCard = makeLabel(banner, "Card", UDim2.fromScale(0.05, 0.36), UDim2.fromScale(0.9, 0.36), "", Color3.fromRGB(255, 255, 255), Color3.fromRGB(0, 0, 0), 1)
 local bannerStats = makeLabel(banner, "Stats", UDim2.fromScale(0.05, 0.74), UDim2.fromScale(0.9, 0.2), "", Color3.fromRGB(255, 255, 255), Color3.fromRGB(0, 0, 0), 1)
 
@@ -197,12 +209,12 @@ local function showReveal(cardId, pullerName, mutationId)
 	bannerCard.Text = string.format("%s  %s%s", definition.Symbol,
 		CardData.DisplayName(definition, mutationId), isMutated and "!" or "")
 	if isMutated then
-		bannerStats.Text = string.format("%s %s  •  earns $%d/s (x%d mutation)",
+		bannerStats.Text = string.format("%s %s  •  earns %s/s (x%d mutation)",
 			string.upper(mutation.Name), string.upper(definition.Rarity),
-			CardData.GetEarnPerSecond(definition, mutationId), mutation.Multiplier)
+			CardData.FormatMoney(CardData.GetEarnPerSecond(definition, mutationId)), mutation.Multiplier)
 	else
-		bannerStats.Text = string.format("%s  •  earns $%d/s",
-			string.upper(definition.Rarity), definition.EarnPerSecond)
+		bannerStats.Text = string.format("%s  •  earns %s/s",
+			string.upper(definition.Rarity), CardData.FormatMoney(definition.EarnPerSecond))
 	end
 
 	banner.Position = UDim2.new(0.5, 0, 0, -170)
@@ -225,9 +237,9 @@ revealEvent.OnClientEvent:Connect(function(cardId, pullerName, mutationId)
 end)
 
 -- Notice toast.
-local toast = makeLabel(gui, "Toast", UDim2.new(0.5, -160, 1, -86), UDim2.new(0, 320, 0, 40), "", Color3.fromRGB(255, 255, 255), Color3.fromRGB(24, 22, 44), 0.15)
+local toast = makeLabel(gui, "Toast", UDim2.new(0.5, -230, 1, -96), UDim2.new(0, 460, 0, 56), "", Color3.fromRGB(255, 255, 255), Color3.fromRGB(24, 22, 44), 0.15)
 toast.TextScaled = false
-toast.TextSize = 13
+toast.TextSize = 19
 toast.TextWrapped = true
 toast.TextTransparency = 1
 toast.BackgroundTransparency = 1
@@ -257,24 +269,82 @@ noticeEvent.OnClientEvent:Connect(function(text, kind)
 	end)
 end)
 
--- Cash, cards and rebirths follow leaderstats.
+-- Big event banner: when the thief storms, the whole server sees it —
+-- a wide red warning under the objective strip with a live countdown,
+-- the way the hazard deserves. Driven by the server's Event remote.
+local eventBanner = Instance.new("Frame")
+eventBanner.Name = "EventBanner"
+eventBanner.AnchorPoint = Vector2.new(0.5, 0)
+eventBanner.Position = UDim2.new(0.5, 0, 0, 66)
+eventBanner.Size = UDim2.new(0, 640, 0, 74)
+eventBanner.BackgroundColor3 = Color3.fromRGB(122, 20, 30)
+eventBanner.BackgroundTransparency = 0.08
+eventBanner.BorderSizePixel = 0
+eventBanner.Visible = false
+eventBanner.Parent = gui
+
+local eventBannerCorner = Instance.new("UICorner")
+eventBannerCorner.CornerRadius = UDim.new(0, 14)
+eventBannerCorner.Parent = eventBanner
+
+local eventBannerLabel = makeLabel(eventBanner, "Text", UDim2.fromScale(0.03, 0.08), UDim2.fromScale(0.94, 0.84), "", Color3.fromRGB(255, 255, 255), Color3.fromRGB(122, 20, 30), 1)
+eventBannerLabel.TextScaled = false
+eventBannerLabel.TextSize = 36
+
+local eventEndsAt = 0
+local eventToken = 0
+
+eventEvent.OnClientEvent:Connect(function(kind, seconds)
+	eventToken += 1
+	local myToken = eventToken
+	if kind == "thief" then
+		eventEndsAt = Workspace:GetServerTimeNow() + (seconds or 45)
+		eventBanner.Visible = true
+		task.spawn(function()
+			while eventToken == myToken and eventBanner.Visible do
+				local remaining = math.max(0, math.ceil(eventEndsAt - Workspace:GetServerTimeNow()))
+				eventBannerLabel.Text = string.format("🦝 THIEF ON THE LOOSE — %ds!", remaining)
+				if remaining <= 0 then
+					eventBanner.Visible = false
+					break
+				end
+				task.wait(0.25)
+			end
+		end)
+	else
+		eventBanner.Visible = false
+	end
+end)
+
+-- Cash, cards and rebirths follow leaderstats; the live income figure
+-- arrives on its own remote from the server's earn tick.
+local liveIncome = 0
+
 local function bindCash()
 	local leaderstats = player:WaitForChild("leaderstats")
 	local cash = leaderstats:WaitForChild("Cash")
 	local cards = leaderstats:WaitForChild("Cards")
 	local rebirths = leaderstats:WaitForChild("Rebirths")
 	local function refresh()
-		cashLabel.Text = string.format("💰 $%d", cash.Value)
+		cashLabel.Text = "💰 " .. CardData.FormatMoney(cash.Value)
 		local placed = cards.Value
-		incomeLabel.Text = placed > 0 and string.format("%d card%s placed — earning every second", placed, placed == 1 and "" or "s") or "No cards placed yet"
+		if liveIncome > 0 then
+			incomeLabel.Text = string.format("+%s/s • %d card%s placed", CardData.FormatMoney(liveIncome), placed, placed == 1 and "" or "s")
+		else
+			incomeLabel.Text = placed > 0 and string.format("%d card%s placed — earning every second", placed, placed == 1 and "" or "s") or "No cards placed yet"
+		end
 		local rebirthCount = rebirths.Value
 		rebirthLabel.Text = string.format("⭐ Rebirths: %d • Income x%.1f", rebirthCount, CardData.GetIncomeMultiplier(rebirthCount))
 		local cost = CardData.GetRebirthCost(rebirthCount)
-		rebirthButton.Text = string.format("♻ REBIRTH — $%d", cost)
+		rebirthButton.Text = "♻ REBIRTH — " .. CardData.FormatMoney(cost)
 		rebirthButton.BackgroundColor3 = cash.Value >= cost
 			and Color3.fromRGB(46, 160, 90)
 			or Color3.fromRGB(70, 66, 96)
 	end
+	incomeEvent.OnClientEvent:Connect(function(perSecond)
+		liveIncome = perSecond or 0
+		refresh()
+	end)
 	cash.Changed:Connect(refresh)
 	cards.Changed:Connect(refresh)
 	rebirths.Changed:Connect(refresh)
