@@ -5,6 +5,7 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local SoundService = game:GetService("SoundService")
 local Workspace = game:GetService("Workspace")
 
 local CardData = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("CardData"))
@@ -13,6 +14,7 @@ local DataService = require(script.Parent.DataService)
 local RebirthService = require(script.Parent.RebirthService)
 local BaseLockService = require(script.Parent.BaseLockService)
 local ThiefEvent = require(script.Parent.ThiefEvent)
+local ConveyorService = require(script.Parent.ConveyorService)
 
 local GameServer = {}
 
@@ -88,7 +90,7 @@ local function buildCardFace(body, definition, mutationId)
 	stats.Position = UDim2.fromScale(0.06, 0.76)
 	stats.Size = UDim2.fromScale(0.88, 0.18)
 	stats.BackgroundTransparency = 1
-	stats.Text = string.format("%s  •  $%d/s", string.upper(definition.Rarity), CardData.GetEarnPerSecond(definition, mutationId))
+	stats.Text = string.format("%s  •  %s/s", string.upper(definition.Rarity), CardData.FormatMoney(CardData.GetEarnPerSecond(definition, mutationId)))
 	stats.TextColor3 = Color3.fromRGB(255, 255, 255)
 	stats.TextScaled = true
 	stats.Font = Enum.Font.FredokaOne
@@ -151,9 +153,9 @@ local function updateStandPrompt(base, stand)
 		local cardId, mutationId = CardData.ParsePlacedEntry(entry)
 		local definition = cardId and CardData.CardsById[cardId]
 		if definition then
-			stand.Prompt.ObjectText = string.format("%s • $%d/s",
+			stand.Prompt.ObjectText = string.format("%s • %s/s",
 				CardData.DisplayName(definition, mutationId),
-				CardData.GetEarnPerSecond(definition, mutationId))
+				CardData.FormatMoney(CardData.GetEarnPerSecond(definition, mutationId)))
 		end
 		stand.Prompt.ActionText = "Take / Steal"
 		stand.Prompt.HoldDuration = CardData.StealHoldSeconds
@@ -304,6 +306,41 @@ local function createCardModel(definition, ownerUserId, mutationId)
 
 	buildCardFace(body, definition, mutationId)
 
+	-- Floating figure over the card, readable across the plaza: the
+	-- card's name and what it earns, everywhere the card goes — belt,
+	-- back, stand. ConveyorService rewrites TagStat with the price
+	-- while the card rides the belt.
+	local tag = Instance.new("BillboardGui")
+	tag.Name = "CardTag"
+	tag.Size = UDim2.fromScale(14, 3.8)
+	tag.StudsOffset = Vector3.new(0, 5.4, 0)
+	tag.AlwaysOnTop = false
+	tag.MaxDistance = 200
+	tag.Parent = body
+
+	local tagName = Instance.new("TextLabel")
+	tagName.Name = "TagName"
+	tagName.Size = UDim2.fromScale(1, 0.52)
+	tagName.BackgroundTransparency = 1
+	tagName.Text = CardData.DisplayName(definition, mutationId)
+	tagName.TextColor3 = Color3.fromRGB(255, 255, 255)
+	tagName.TextStrokeTransparency = 0.1
+	tagName.TextScaled = true
+	tagName.Font = Enum.Font.FredokaOne
+	tagName.Parent = tag
+
+	local tagStat = Instance.new("TextLabel")
+	tagStat.Name = "TagStat"
+	tagStat.Position = UDim2.fromScale(0, 0.52)
+	tagStat.Size = UDim2.fromScale(1, 0.48)
+	tagStat.BackgroundTransparency = 1
+	tagStat.Text = CardData.FormatMoney(CardData.GetEarnPerSecond(definition, mutationId)) .. "/s"
+	tagStat.TextColor3 = Color3.fromRGB(255, 224, 102)
+	tagStat.TextStrokeTransparency = 0.1
+	tagStat.TextScaled = true
+	tagStat.Font = Enum.Font.FredokaOne
+	tagStat.Parent = tag
+
 	local attachment0 = Instance.new("Attachment")
 	attachment0.Name = "BeamBottom"
 	attachment0.Position = Vector3.new(0, -2.5, 0)
@@ -383,9 +420,9 @@ local function placeCardOnStand(session, base, stand)
 	DataService.RefreshLeaderstats(session)
 	updateStandPrompt(base, stand)
 	local definition = CardData.CardsById[cardId]
-	fireNotice(session.Player, string.format("Placed %s — earning $%d every second.",
+	fireNotice(session.Player, string.format("Placed %s — earning %s every second.",
 		CardData.DisplayName(definition, mutationId),
-		CardData.GetEarnPerSecond(definition, mutationId)), "good")
+		CardData.FormatMoney(CardData.GetEarnPerSecond(definition, mutationId))), "good")
 	return true
 end
 
@@ -453,6 +490,14 @@ local function handleStandPrompt(player, base, stand)
 	placeCardOnStand(session, base, stand)
 end
 
+-- The player's live luck multiplier: the shop sets it, the clock ends it.
+local function activeLuckMultiplier(session)
+	if session.LuckEndsAt and os.clock() < session.LuckEndsAt then
+		return session.LuckMultiplier or 1
+	end
+	return 1
+end
+
 local function handleMachinePrompt(player)
 	local session = DataService.GetSession(player)
 	if not session then
@@ -469,12 +514,12 @@ local function handleMachinePrompt(player)
 		return
 	end
 	if session.Cash < CardData.PullCost then
-		fireNotice(player, string.format("You need $%d for a pull. Your placed cards earn every second.", CardData.PullCost), "bad")
+		fireNotice(player, string.format("You need %s for a pull. Your placed cards earn every second.", CardData.FormatMoney(CardData.PullCost)), "bad")
 		return
 	end
 
 	DataService.AddCash(session, -CardData.PullCost)
-	local definition = CardData.Roll(random)
+	local definition = CardData.RollWithLuck(random, activeLuckMultiplier(session))
 	local mutationId = CardData.RollMutation(random)
 	local model = createCardModel(definition, session.UserId, mutationId)
 	local body = model.PrimaryPart
@@ -671,8 +716,8 @@ local function refreshBaseStands(base, ownerSession)
 	end
 	if base.RebirthPrompt then
 		if ownerSession then
-			base.RebirthPrompt.ObjectText = string.format("Rebirth — $%d for x%.1f income",
-				RebirthService.GetCost(ownerSession),
+			base.RebirthPrompt.ObjectText = string.format("Rebirth — %s for x%.1f income",
+				CardData.FormatMoney(RebirthService.GetCost(ownerSession)),
 				CardData.GetIncomeMultiplier(ownerSession.Rebirths + 1))
 		else
 			base.RebirthPrompt.ObjectText = "Rebirth Pad"
@@ -851,6 +896,15 @@ function GameServer.Start()
 	local adminCashRemote = Instance.new("RemoteEvent")
 	adminCashRemote.Name = "AdminCash"
 	adminCashRemote.Parent = remotes
+	local eventRemote = Instance.new("RemoteEvent")
+	eventRemote.Name = "Event"
+	eventRemote.Parent = remotes
+	local incomeRemote = Instance.new("RemoteEvent")
+	incomeRemote.Name = "Income"
+	incomeRemote.Parent = remotes
+	local buyLuckRemote = Instance.new("RemoteEvent")
+	buyLuckRemote.Name = "BuyLuck"
+	buyLuckRemote.Parent = remotes
 	remotes.Parent = ReplicatedStorage
 	GameServer.Remotes = remotes
 
@@ -868,8 +922,35 @@ function GameServer.Start()
 		if not session then
 			return
 		end
-		DataService.AddCash(session, 10000)
-		fireNotice(player, "👑 Admin: +$10,000", "good")
+		DataService.AddCash(session, 25000000)
+		fireNotice(player, "👑 Admin: +$25M", "good")
+	end)
+
+	-- Luck shop: cash for a timed pull-luck multiplier. The server owns the
+	-- prices and the clock; the client only names the product it wants.
+	buyLuckRemote.OnServerEvent:Connect(function(player, productId)
+		local session = DataService.GetSession(player)
+		if not session then
+			return
+		end
+		local product = type(productId) == "string" and CardData.LuckProductsById[productId]
+		if not product then
+			return
+		end
+		if session.Cash < product.Price then
+			fireNotice(player, string.format("You need %s for %s.", CardData.FormatMoney(product.Price), product.Name), "bad")
+			return
+		end
+		DataService.AddCash(session, -product.Price)
+		if activeLuckMultiplier(session) <= product.Multiplier then
+			session.LuckMultiplier = product.Multiplier
+			session.LuckEndsAt = os.clock() + product.DurationSeconds
+		else
+			-- A stronger boost is already running: keep it, and bank this
+			-- purchase as extra time at the current multiplier.
+			session.LuckEndsAt += product.DurationSeconds
+		end
+		fireNotice(player, string.format("%s %s active! %s \u{2014} the machine just got luckier.", product.Symbol, product.Name, product.Blurb), "good")
 	end)
 
 	world.Machine.Prompt.Triggered:Connect(handleMachinePrompt)
@@ -921,6 +1002,9 @@ function GameServer.Start()
 		World = world,
 		FireNotice = fireNotice,
 		FireNoticeAll = fireNoticeAll,
+		FireEventAll = function(kind, seconds)
+			eventRemote:FireAllClients(kind, seconds)
+		end,
 		IsLocked = function(baseIndex)
 			return BaseLockService.IsLocked(baseIndex)
 		end,
@@ -928,6 +1012,25 @@ function GameServer.Start()
 		StealPlacedCard = stealPlacedCardForThief,
 		DropCardLoose = dropCardLoose,
 	})
+	ConveyorService.Init({
+		World = world,
+		CreateCardModel = createCardModel,
+		AttachCard = attachCardToPlayer,
+		DropCardLoose = dropCardLoose,
+		FireNotice = fireNotice,
+		GetSession = DataService.GetSession,
+		AddCash = DataService.AddCash,
+	})
+
+	-- Background music: an original loop composed for this game, owned by
+	-- the place creator, playing for everyone from SoundService.
+	local music = Instance.new("Sound")
+	music.Name = "BackgroundMusic"
+	music.SoundId = "rbxassetid://124089141924912"
+	music.Looped = true
+	music.Volume = 0.32
+	music.Parent = SoundService
+	music:Play()
 
 	Players.PlayerAdded:Connect(setupPlayer)
 	Players.PlayerRemoving:Connect(onPlayerRemoving)
@@ -957,6 +1060,14 @@ function GameServer.Start()
 						income += CardData.GetEarnPerSecond(definition, mutationId)
 					end
 				end
+				-- The HUD's live income figure: what this player's
+				-- placed cards pay per second after the rebirth
+				-- multiplier, refreshed every tick.
+				local luckLeft = math.max(0, math.floor((session.LuckEndsAt or 0) - os.clock()))
+				incomeRemote:FireClient(session.Player,
+					math.floor(income * RebirthService.GetIncomeMultiplier(session)),
+					luckLeft > 0 and (session.LuckMultiplier or 1) or 1,
+					luckLeft)
 				if income > 0 then
 					session.IncomeCarry += income * RebirthService.GetIncomeMultiplier(session)
 					local payout = math.floor(session.IncomeCarry)

@@ -161,6 +161,9 @@ local function runEvent()
 	active = { Model = model, Root = root, StolenModel = nil, StolenOwner = nil, Fled = false }
 
 	hooks.FireNoticeAll("🦝 A THIEF is loose! Protect your cards — bat it or lock your base!", "bad")
+	if hooks.FireEventAll then
+		hooks.FireEventAll("thief", ThiefEvent.EventSeconds)
+	end
 	local deadline = os.clock() + ThiefEvent.EventSeconds
 	local escaped = false
 
@@ -254,6 +257,9 @@ local function runEvent()
 	end
 	spinAndDespawn()
 	active = nil
+	if hooks.FireEventAll then
+		hooks.FireEventAll("clear", 0)
+	end
 	if not escaped then
 		hooks.FireNoticeAll("The thief is gone… for now.", "info")
 	end
@@ -294,6 +300,7 @@ end
 --   World,                                    -- WorldBuilder.Build result
 --   FireNotice(player, text, kind),
 --   FireNoticeAll(text, kind),
+--   FireEventAll(kind, seconds),              -- optional: big event banner
 --   IsLocked(baseIndex) -> boolean,
 --   GetTargets() -> { { BaseIndex, StandIndex }, ... } for stands holding a card,
 --   StealPlacedCard(baseIndex, standIndex) -> model?, ownerPlayer?, displayName?,

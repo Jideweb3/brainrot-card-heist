@@ -38,6 +38,8 @@ function DataService.CreateSession(player)
 		PlacedCards = {}, -- [standIndex as string] = placed entry ("cardId" or "cardId|MutationId")
 		PlacedModels = {}, -- [standIndex] = Model (runtime only)
 		IncomeCarry = 0, -- fractional income owed by the rebirth multiplier (runtime only)
+		LuckMultiplier = 1, -- shop-bought pull luck (runtime only)
+		LuckEndsAt = 0, -- os.clock() moment the luck runs out (runtime only)
 		Loaded = false,
 		LastPullAt = 0,
 		LastBatAt = 0,

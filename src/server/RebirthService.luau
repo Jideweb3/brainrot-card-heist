@@ -47,8 +47,8 @@ function RebirthService.TryRebirth(player)
 	local cost = RebirthService.GetCost(session)
 	if session.Cash < cost then
 		hooks.FireNotice(player, string.format(
-			"Rebirth costs $%d — you have $%d. Placed cards keep earning!",
-			cost, math.floor(session.Cash)), "bad")
+			"Rebirth costs %s — you have %s. Placed cards keep earning!",
+			CardData.FormatMoney(cost), CardData.FormatMoney(session.Cash)), "bad")
 		return false
 	end
 

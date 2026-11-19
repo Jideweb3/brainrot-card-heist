@@ -111,10 +111,14 @@ function WorldBuilder.Build(workspace)
 
 	local plaza = makePart(world, "Plaza", Vector3.new(170, 1, 170), CFrame.new(0, 0, 0), Color3.fromRGB(43, 47, 70), Enum.Material.SmoothPlastic)
 	plaza.Name = "Plaza"
+	-- Classic Roblox studs on every walking surface: the little bumps are
+	-- the look Jide asked for, ground and floors first.
+	plaza.TopSurface = Enum.SurfaceType.Studs
 
 	-- Bright grass everywhere else, so the world never reads as a bare
 	-- baseplate: a full-size ground slab just under the plaza top.
-	makePart(world, "Ground", Vector3.new(512, 1, 512), CFrame.new(0, -0.1, 0), Color3.fromRGB(86, 178, 84), Enum.Material.SmoothPlastic)
+	local ground = makePart(world, "Ground", Vector3.new(512, 1, 512), CFrame.new(0, -0.1, 0), Color3.fromRGB(52, 138, 76), Enum.Material.SmoothPlastic)
+	ground.TopSurface = Enum.SurfaceType.Studs
 
 	local ring = makePart(world, "MachineRing", Vector3.new(38, 0.35, 38), CFrame.new(0, 0.68, 0), Color3.fromRGB(255, 196, 66), Enum.Material.Neon)
 	ring.CanCollide = false
@@ -125,8 +129,8 @@ function WorldBuilder.Build(workspace)
 	for rayIndex = 1, 16 do
 		local rayAngle = math.rad((rayIndex - 1) * 22.5 + 11.25)
 		local rayPos = Vector3.new(math.sin(rayAngle) * 36, 0.53, math.cos(rayAngle) * 36)
-		local rayColor = rayIndex % 2 == 1 and Color3.fromRGB(240, 180, 70) or Color3.fromRGB(105, 70, 200)
-		local ray = makePart(world, "PlazaRay", Vector3.new(4.2, 0.1, 30), CFrame.new(rayPos) * CFrame.Angles(0, rayAngle, 0), rayColor, Enum.Material.SmoothPlastic)
+		local rayColor = rayIndex % 2 == 1 and Color3.fromRGB(240, 180, 70) or Color3.fromRGB(198, 148, 58)
+		local ray = makePart(world, "PlazaRay", Vector3.new(4.2, 0.1, 30), CFrame.new(rayPos) * CFrame.Angles(0, rayAngle, 0), rayColor, Enum.Material.Neon)
 		ray.CanCollide = false
 	end
 
@@ -139,7 +143,7 @@ function WorldBuilder.Build(workspace)
 	spawn.Material = Enum.Material.Neon
 	-- Built by hand rather than via makePart, so it gets the same 55%
 	-- neon dimming applied here.
-	local spawnColor = Color3.fromRGB(70, 220, 160)
+	local spawnColor = Color3.fromRGB(255, 205, 92)
 	spawn.Color = Color3.new(spawnColor.R * 0.55, spawnColor.G * 0.55, spawnColor.B * 0.55)
 	spawn.Anchored = true
 	spawn.CanCollide = false
@@ -170,13 +174,14 @@ function WorldBuilder.Build(workspace)
 	local prompt = Instance.new("ProximityPrompt")
 	prompt.Name = "PullPrompt"
 	prompt.ActionText = "Pull a Card"
-	prompt.ObjectText = string.format("$%d Card Machine", CardData.PullCost)
+	prompt.ObjectText = string.format("%s Card Machine", CardData.FormatMoney(CardData.PullCost))
 	prompt.HoldDuration = 0.45
 	prompt.MaxActivationDistance = 15
 	prompt.RequiresLineOfSight = false
 	prompt.Parent = lever
 
-	makePart(machine, "OutputPlatform", Vector3.new(9, 0.7, 5), CFrame.new(0, 0.9, 7.5), Color3.fromRGB(70, 220, 160), Enum.Material.Neon)
+	local outputPlatform = makePart(machine, "OutputPlatform", Vector3.new(9, 0.7, 5), CFrame.new(0, 0.9, 7.5), Color3.fromRGB(255, 196, 66), Enum.Material.Neon)
+	outputPlatform.TopSurface = Enum.SurfaceType.Studs
 
 	local machineRefs = {
 		Model = machine,
@@ -245,9 +250,9 @@ function WorldBuilder.Build(workspace)
 	-- Eight bases around the machine.
 	local bases = {}
 	local baseColors = {
-		Color3.fromRGB(255, 107, 107), Color3.fromRGB(255, 166, 66), Color3.fromRGB(255, 224, 102),
-		Color3.fromRGB(107, 220, 145), Color3.fromRGB(72, 202, 228), Color3.fromRGB(84, 126, 255),
-		Color3.fromRGB(178, 102, 255), Color3.fromRGB(255, 102, 178),
+		Color3.fromRGB(232, 84, 84), Color3.fromRGB(240, 140, 60), Color3.fromRGB(245, 197, 66),
+		Color3.fromRGB(84, 199, 120), Color3.fromRGB(64, 196, 196), Color3.fromRGB(84, 140, 245),
+		Color3.fromRGB(168, 108, 245), Color3.fromRGB(245, 108, 178),
 	}
 
 	for baseIndex = 1, 8 do
@@ -262,7 +267,8 @@ function WorldBuilder.Build(workspace)
 		local accent = baseColors[baseIndex]
 		-- A real square base, not a flat pad: a 34x34 floor inside proper
 		-- walls, with a laser doorway in the front wall as the only way in.
-		makePart(baseModel, "Floor", Vector3.new(34, 1, 34), baseCFrame * CFrame.new(0, 0.55, 0), accent, Enum.Material.SmoothPlastic)
+		local floor = makePart(baseModel, "Floor", Vector3.new(34, 1, 34), baseCFrame * CFrame.new(0, 0.55, 0), Color3.fromRGB(43, 47, 70):Lerp(accent, 0.22), Enum.Material.SmoothPlastic)
+		floor.TopSurface = Enum.SurfaceType.Studs
 
 		local wallColor = Color3.fromRGB(37, 42, 58)
 		local function makeWall(name, size, offset)
@@ -463,7 +469,7 @@ function WorldBuilder.Build(workspace)
 		local segLength = (p2 - p1).Magnitude + 0.4
 		local wallCFrame = CFrame.lookAt(Vector3.new(mid.X, 2, mid.Z), Vector3.new(p2.X, 2, p2.Z))
 		makePart(world, "ArenaWall", Vector3.new(0.6, 3.2, segLength), wallCFrame, Color3.fromRGB(35, 38, 52), Enum.Material.Metal)
-		local trim = makePart(world, "ArenaTrim", Vector3.new(0.7, 0.3, segLength), wallCFrame * CFrame.new(0, 1.75, 0), Color3.fromRGB(255, 255, 255), Enum.Material.Neon)
+		local trim = makePart(world, "ArenaTrim", Vector3.new(0.7, 0.3, segLength), wallCFrame * CFrame.new(0, 1.75, 0), Color3.fromRGB(240, 180, 70), Enum.Material.Neon)
 		trim.CanCollide = false
 	end
 
@@ -474,9 +480,9 @@ function WorldBuilder.Build(workspace)
 		local treeRadius = 84 + ((treeIndex * 37) % 9)
 		local treePos = Vector3.new(math.sin(treeAngle) * treeRadius, 0, math.cos(treeAngle) * treeRadius)
 		makePart(world, "TreeTrunk", Vector3.new(1.2, 4, 1.2), CFrame.new(treePos + Vector3.new(0, 2.4, 0)), Color3.fromRGB(101, 67, 50), Enum.Material.SmoothPlastic)
-		local canopyMain = makePart(world, "TreeCanopy", Vector3.new(4.6, 4.6, 4.6), CFrame.new(treePos + Vector3.new(0, 6.2, 0)), Color3.fromRGB(74, 178, 80), Enum.Material.SmoothPlastic)
+		local canopyMain = makePart(world, "TreeCanopy", Vector3.new(4.6, 4.6, 4.6), CFrame.new(treePos + Vector3.new(0, 6.2, 0)), Color3.fromRGB(56, 146, 64), Enum.Material.SmoothPlastic)
 		canopyMain.Shape = Enum.PartType.Ball
-		local canopyTop = makePart(world, "TreeCanopyTop", Vector3.new(3.2, 3.2, 3.2), CFrame.new(treePos + Vector3.new(1.5, 7.7, 0.5)), Color3.fromRGB(96, 196, 92), Enum.Material.SmoothPlastic)
+		local canopyTop = makePart(world, "TreeCanopyTop", Vector3.new(3.2, 3.2, 3.2), CFrame.new(treePos + Vector3.new(1.5, 7.7, 0.5)), Color3.fromRGB(72, 166, 76), Enum.Material.SmoothPlastic)
 		canopyTop.Shape = Enum.PartType.Ball
 	end
 
@@ -642,12 +648,71 @@ function WorldBuilder.Build(workspace)
 		end
 	end)
 
+	-- Card belt: a straight conveyor running east-west across the north
+	-- side of the plaza (z = -24), clear of the machine (centre), the
+	-- statue ring (radius 36, nearest pedestals end at z -30.5 and
+	-- z -16.5), the lamps and the spawn pad (z 23..33, south side).
+	-- Fresh cards ride it in ConveyorService and players buy them off
+	-- it as they pass; the deck floats just over the base paths and
+	-- sunburst rays it crosses (their tops sit at y 0.62, the deck's
+	-- underside at 0.65).
+	local beltFolder = Instance.new("Folder")
+	beltFolder.Name = "CardBelt"
+	beltFolder.Parent = world
+
+	local beltZ = -24
+	local beltDeckTopY = 1.45
+	makePart(beltFolder, "BeltDeck", Vector3.new(112, 0.8, 7), CFrame.new(0, beltDeckTopY - 0.4, beltZ), Color3.fromRGB(30, 32, 46), Enum.Material.Metal)
+
+	-- Gold chevrons on the deck, angled toward the direction of travel.
+	for chevronIndex = 1, 13 do
+		local chevronX = -51 + (chevronIndex - 1) * 8.5
+		local chevron = makePart(beltFolder, "BeltStripe", Vector3.new(2.6, 0.06, 5.6), CFrame.new(chevronX, beltDeckTopY + 0.03, beltZ) * CFrame.Angles(0, math.rad(24), 0), Color3.fromRGB(255, 196, 66), Enum.Material.Neon)
+		chevron.CanCollide = false
+	end
+
+	-- Pink neon rails along both edges.
+	for _, side in ipairs({ -1, 1 }) do
+		local rail = makePart(beltFolder, "BeltRail", Vector3.new(112, 0.5, 0.5), CFrame.new(0, beltDeckTopY + 0.25, beltZ + side * 3.6), Color3.fromRGB(255, 91, 122), Enum.Material.Neon)
+		rail.CanCollide = false
+	end
+
+	-- Slim leg pairs so the base paths crossing under the belt stay
+	-- walkable.
+	for legX = -52, 52, 13 do
+		for _, side in ipairs({ -1, 1 }) do
+			makePart(beltFolder, "BeltLeg", Vector3.new(1.1, beltDeckTopY, 1.1), CFrame.new(legX, beltDeckTopY / 2, beltZ + side * 2.6), Color3.fromRGB(35, 38, 52), Enum.Material.Metal)
+		end
+	end
+
+	-- Start arch with the sign, at the west end where cards roll in.
+	for _, side in ipairs({ -1, 1 }) do
+		makePart(beltFolder, "BeltArchPost", Vector3.new(0.8, 7.6, 0.8), CFrame.new(-55, 3.8, beltZ + side * 3.4), Color3.fromRGB(35, 38, 52), Enum.Material.Metal)
+	end
+	makePart(beltFolder, "BeltArchTop", Vector3.new(0.8, 1, 8.4), CFrame.new(-55, 7.9, beltZ), Color3.fromRGB(35, 38, 52), Enum.Material.Metal)
+	local beltSign = makePart(beltFolder, "BeltSign", Vector3.new(0.45, 2.4, 10.5), CFrame.new(-55, 6.2, beltZ), Color3.fromRGB(24, 22, 44), Enum.Material.Neon)
+	beltSign.CanCollide = false
+	makeTextFace(beltSign, "🎴 CARD BELT", Color3.fromRGB(255, 235, 130), Color3.fromRGB(24, 22, 44))
+
+	-- Return box at the east end: unsold cards slide in and are gone.
+	local returnBox = makePart(beltFolder, "BeltReturnBox", Vector3.new(4.5, 6.8, 8.8), CFrame.new(58, beltDeckTopY + 3.4, beltZ), Color3.fromRGB(36, 38, 58), Enum.Material.Metal)
+	returnBox.CanCollide = false
+	local returnTrim = makePart(beltFolder, "BeltReturnTrim", Vector3.new(0.4, 5.6, 7.6), CFrame.new(55.7, beltDeckTopY + 2.8, beltZ), Color3.fromRGB(255, 91, 122), Enum.Material.Neon)
+	returnTrim.CanCollide = false
+
+	local beltRefs = {
+		StartPosition = Vector3.new(-53, beltDeckTopY, beltZ),
+		EndPosition = Vector3.new(55, beltDeckTopY, beltZ),
+		DeckTopY = beltDeckTopY,
+	}
+
 	return {
 		World = world,
 		ActiveCards = activeCards,
 		Machine = machineRefs,
 		Bases = bases,
 		HoloCard = holoCard,
+		Belt = beltRefs,
 	}
 end
 
